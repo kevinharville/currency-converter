@@ -6,27 +6,18 @@ export default function App() {
   const [from, setFrom] = useState("GBP");
   const [to, setTo] = useState("INR");
   const [amount, setAmount] = useState(1);
-  const [convertedAmount, setConvertedAmount] = useState(25);
-  const [message, setMessage] = useState("eeeeek")
-  console.log("app");
-  console.log(`{*${from}}`);
+  const [convertedAmount, setConvertedAmount] = useState(0);
+  const [message, setMessage] = useState("eeeeek");
+  const [isLoading, setIsLoading] = useState(false);
+
   useEffect(
     function () {
-      console.log("hola");
-      console.log(error);
-      console.log("hey")
+
       setMessage("READY");
       const controller = new AbortController();
       async function fetchConversion() {
         try {
-          //setIsLoading(true);
-          //setError("");
-          // const res = await fetch(
-          //   `https://api.frankfurter.app/latest?amount=100&from=EUR&to=USD`,
-          //   { signal: controller.signal }
-          // );
-
-          // frankfurter
+          setIsLoading(true);
           const host = "api.frankfurter.app";
           const res = await fetch(
             `https://${host}/latest?amount=${amount}&from=${from}&to=${to}`
@@ -38,7 +29,6 @@ export default function App() {
           console.log(data);
           console.log(data.message)
           if (!res.ok) {
-            console.log("HERE" + data.message);
             setError("THERE:" + data.message);
             setMessage("ANYWHERE:" + data.message);
             throw new Error(
@@ -54,8 +44,7 @@ export default function App() {
           }
           setConvertedAmount(amount)
         } finally {
-          //.then((data) => setMovies(data.Search));
-          //setIsLoading(false);
+          setIsLoading(false);
         }
       }
       fetchConversion();
@@ -69,10 +58,10 @@ export default function App() {
 
   return (
     <div>  
-      <CurrencyEntry amount={amount} setAmount={setAmount} />
+      <CurrencyEntry amount={amount} setAmount={setAmount} isLoading={isLoading} />
       <CurrencyDropdown currency={from} setWhich={setFrom} />
       <CurrencyDropdown currency={to} setWhich={setTo} />
-      <Result convertedAmount={convertedAmount} from={from} />
+      <Result convertedAmount={convertedAmount} to={to} />
       {console.log('lootitoo', error)}
       {message}
       { message && ( <Error error={message}/> )}
@@ -80,7 +69,7 @@ export default function App() {
   );
 }
 
-function CurrencyEntry({ amount, setAmount }) {
+function CurrencyEntry({ amount, setAmount, isLoading }) {
 
   const handleInputChange = (event) => {
     const input = event.target.value;
@@ -88,13 +77,14 @@ function CurrencyEntry({ amount, setAmount }) {
     const regex = /^[0-9\b.]+$/;
 
     if (input === '' || regex.test(input)) {
-      setAmount(input);
+      setAmount(Number(input));
     }
   };
   return(<input
         type="text"
         onChange={handleInputChange}
         value={amount} className="inline"
+        disabled={isLoading}
       />) 
 }
 
@@ -108,16 +98,16 @@ function CurrencyDropdown({ currency, setWhich }) {
     </select>)
 }
 
-function Result({ convertedAmount, from }) {
+function Result({ convertedAmount, to }) {
   return (
     <div>
-      <p>RESULT: {convertedAmount}</p>
+      <p>RESULT: {convertedAmount} {to}</p>
     </div>
   );
 }
 
 function Error({ message }) {
   return (
-    <p>x {message} x</p>
+    <p>{message}</p>
   )
 }
